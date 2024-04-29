@@ -62,7 +62,52 @@ export class UserContoller {
   
  
 
+   /**
+   * Login the user.
+   *
+   * @param {object} req the request object.
+   * @param {object }res responese object.
+   * @param  {Function} next the next function.
+   */
+   async login (req, res, next) {
+    try {
+      const user = await User.authenticate(req.body.user, req.body.password)
+      const privatekey = fs.readFileSync(process.env.ACCESS_TOKEN_SECRET)
+
+     
+        const accsesstoken = jwt.sign(await this.signPayload(user), privatekey, {
+          algorithm: 'RS256',
+          expiresIn: process.env.ACCESS_TOKEN_LIFE
+        })
+
+        res.status(201).json({
+          accsess_token: accsesstoken
+        })
+      
+    } catch (error) {
+      error = createError(401)
+      next(error)
+    }
+
+  }
   
+
+
+  /**
+   * Sign normal paylaod.
+   *
+   * @param {object} user the user object.
+   */
+  async signPayload (user) {
+    const payload = {
+      sub: user.username,
+      mail: user.mailadress
+
+    }
+    return payload
+  }
+
+ 
   
 
   
