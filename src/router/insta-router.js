@@ -1,5 +1,5 @@
 import express from 'express'
-import { InstaController } from '../controller/insta-api-controller'
+import { InstaController } from '../controller/insta-api-controller.js'
 
 export const router = express.Router()
 
