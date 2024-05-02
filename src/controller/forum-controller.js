@@ -8,7 +8,7 @@ export class ForumController {
      */
     async addPost(req, res) {
         try {
-            if (this.checkCatagory(req.body.catagory) && this.checkMainTheme(req.body.theme)) {
+            if (this.checkCatagory(req.body.catagory) && this.checkMainTheme(req.body.maintheme)) {
                 await this.saveTopic(req, res)
             } else {
                 res.status(400).json({ error: 'Bad request: Invalid category or theme' })
@@ -49,7 +49,7 @@ export class ForumController {
     async saveTopic(req, res) {
         try {
             const { catagory, maintheme, title, text } = req.body
-            const username = req.user.username // Extract the username from the authenticated user
+            const username = req.user.username 
 
             const newTopic = new Topic({
                 username,

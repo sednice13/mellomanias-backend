@@ -1,5 +1,7 @@
 import express from 'express'
 import { ForumController } from '../controller/forum-controller.js'
+import fs from 'fs'
+import jwt from 'jsonwebtoken'
 
 export const router = express.Router()
 
@@ -8,7 +10,7 @@ const controller = new ForumController()
 const authenticateJWT = (req, res, next) => {
     try {
       const [authencate, token] = req.headers.authorization?.split(' ')
-      const publickey = fs.readFileSync(process.env.ACCESS_TOKEN_SECRET)
+      const publickey = fs.readFileSync(process.env.ACCESS_TOKEN_PUBLIC)
   
       if (authencate !== 'Bearer') {
         throw new Error('Invalid authentication scheme.')
@@ -21,6 +23,7 @@ const authenticateJWT = (req, res, next) => {
       }
       next()
     } catch (error) {
+        console.log(error)
       const err = createError(401)
       next(err)
     }
