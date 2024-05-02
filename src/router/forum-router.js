@@ -26,4 +26,4 @@ const authenticateJWT = (req, res, next) => {
     }
   }
 
-router.post('/callback', (req, res, next) => controller.callback(req, res, next))
+router.post('/newtopic', authenticateJWT, (req, res, next) => controller.addPost(req, res, next))
