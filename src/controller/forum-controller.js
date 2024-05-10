@@ -49,7 +49,7 @@ export class ForumController {
     async saveTopic(req, res) {
         try {
             const { catagory, maintheme, title, text } = req.body
-            const username = req.user.username 
+            const username = req.user.username
 
             const newTopic = new Topic({
                 username,
@@ -64,5 +64,41 @@ export class ForumController {
         } catch (error) {
             res.status(500).json({ error: 'Server error: Unable to save topic' })
         }
+    }
+
+    async getPosts(req, res) {
+        try {
+            const { topic, theme } = req.params;
+            const { page = 1 } = req.query; // Default page is 1
+            const limit = 3; // Limit to 3 posts per page
+            const skip = (page - 1) * limit;
+
+            // Fetch the filtered and paginated topics
+            const posts = await Topic.find({ catagory: topic, maintheme: theme })
+                .skip(skip)
+                .limit(limit);
+
+            // Calculate the total number of pages
+            const totalPosts = await Topic.countDocuments({ catagory: topic, maintheme: theme });
+            const totalPages = Math.ceil(totalPosts / limit);
+
+            res.status(200).json({
+                posts,
+                totalPages,
+                currentPage: parseInt(page),
+            });
+        } catch (error) {
+            res.status(500).json({ error: 'Server error: Unable to fetch topics' });
+        }
+    }
+
+    async deletePosts(req, res) {
+
+        try {
+            const post = Topic.findById(req.body.id)
+        } catch (error) {
+            
+        }
+
     }
 }
