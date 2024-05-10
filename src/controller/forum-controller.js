@@ -68,36 +68,48 @@ export class ForumController {
 
     async getPosts(req, res) {
         try {
-            const { topic, theme } = req.params;
-            const { page = 1 } = req.query; // Default page is 1
-            const limit = 3; // Limit to 3 posts per page
-            const skip = (page - 1) * limit;
+            const { topic, theme } = req.params
+            const { page = 1 } = req.query // Default page is 1
+            const limit = 3 // Limit to 3 posts per page
+            const skip = (page - 1) * limit
 
             // Fetch the filtered and paginated topics
             const posts = await Topic.find({ catagory: topic, maintheme: theme })
                 .skip(skip)
-                .limit(limit);
+                .limit(limit)
 
             // Calculate the total number of pages
-            const totalPosts = await Topic.countDocuments({ catagory: topic, maintheme: theme });
-            const totalPages = Math.ceil(totalPosts / limit);
+            const totalPosts = await Topic.countDocuments({ catagory: topic, maintheme: theme })
+            const totalPages = Math.ceil(totalPosts / limit)
 
             res.status(200).json({
                 posts,
                 totalPages,
                 currentPage: parseInt(page),
-            });
+            })
         } catch (error) {
-            res.status(500).json({ error: 'Server error: Unable to fetch topics' });
+            res.status(500).json({ error: 'Server error: Unable to fetch topics' })
         }
     }
 
     async deletePosts(req, res) {
 
         try {
-            const post = Topic.findById(req.body.id)
+            const post = await Topic.findById(req.params.postid) 
+            if (!post) {
+                return res.status(404).json({ error: 'Post not found' })
+            }
+
+            if(req.user.username != post.username) {
+          
+                return res.stauts(404).json({error: 'not right user'})
+
+            }
+    
+            await post.remove() 
+            res.status(200).json({ message: 'Post deleted successfully' }) 
         } catch (error) {
-            
+            res.status(500).json({ error: 'Server error: Unable to delete post' }) 
         }
 
     }

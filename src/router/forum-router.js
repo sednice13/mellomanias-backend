@@ -31,3 +31,6 @@ const authenticateJWT = (req, res, next) => {
 
 router.post('/newtopic', authenticateJWT, (req, res, next) => controller.addPost(req, res, next))
 router.get('/topics/:topic/:theme', (req, res, next) => controller.getPosts(req, res, next))
+
+
+router.delete('/posts/:postid', authenticateJWT, (req, res, next) => controller.deletePosts(req, res, next))
