@@ -172,6 +172,7 @@ export class ForumController {
                 username,
                 catagory,
                 maintheme,
+                topicid: req.params.postid,
                 text
             })
 

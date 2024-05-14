@@ -35,3 +35,5 @@ router.get('/topics/:topic/:theme', (req, res, next) => controller.getPosts(req,
 
 router.delete('/posts/:postid', authenticateJWT, (req, res, next) => controller.deletePosts(req, res, next))
 router.put('/posts/:postid', authenticateJWT, (req, res, next) => controller.updatePost(req, res, next))
+
+router.post('/newtopic/:postid', authenticateJWT, (req, res, next) => controller.addComment(req, res, next))
