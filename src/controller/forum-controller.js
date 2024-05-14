@@ -1,3 +1,4 @@
+import { Comment } from '../models/comment.js'
 import { Topic } from '../models/topic.js'
 
 export class ForumController {
@@ -69,16 +70,16 @@ export class ForumController {
     async getPosts(req, res) {
         try {
             const { topic, theme } = req.params
-            const { page = 1 } = req.query // Default page is 1
-            const limit = 3 // Limit to 3 posts per page
+            const { page = 1 } = req.query 
+            const limit = 3
             const skip = (page - 1) * limit
 
-            // Fetch the filtered and paginated topics
+            
             const posts = await Topic.find({ catagory: topic, maintheme: theme })
                 .skip(skip)
                 .limit(limit)
 
-            // Calculate the total number of pages
+            
             const totalPosts = await Topic.countDocuments({ catagory: topic, maintheme: theme })
             const totalPages = Math.ceil(totalPosts / limit)
 
@@ -113,4 +114,72 @@ export class ForumController {
         }
 
     }
+
+    async updatePost(req, res) {
+        try {
+            const post = await Topic.findById(req.params.postid) 
+            if (!post) {
+                return res.status(404).json({ error: 'Post not found' })
+            }
+    
+            if (req.user.username !== post.username) {
+                return res.status(403).json({ error: 'Unauthorized: Cannot edit posts by other users' })
+            }
+    
+            
+            post.title = req.body.title || post.title
+            post.text = req.body.text || post.text
+    
+            await post.save() 
+            res.status(200).json({ message: 'Post updated successfully', updatedPost: post })
+        } catch (error) {
+            res.status(500).json({ error: 'Server error: Unable to update post' })
+        }
+    }
+
+
+    async getPost(req, res) {
+        try {
+            const post = await Topic.findById(req.params.id)
+
+            if(!post) {
+                return res.status(404).json({ error: 'Post not found' })
+            }
+            res.status(200).json(post)
+        } catch (error) {
+            res.status(500).json({ error: 'Server error' })
+        }
+    }
+
+     async addComment(req, res) {
+        try {
+            if (this.checkCatagory(req.body.catagory) && this.checkMainTheme(req.body.maintheme)) {
+                await this.saveComment(req, res)
+            } else {
+                res.status(400).json({ error: 'Bad request: Invalid category or theme' })
+            }
+        } catch (error) {
+            res.status(500).json({ error: 'Server error: Unable to add Comment' })
+        }
+     }
+
+     async saveComment(req, res) {
+        try {
+            const { catagory, maintheme, text } = req.body
+            const username = req.user.username
+
+            const newComment = new Comment({
+                username,
+                catagory,
+                maintheme,
+                text
+            })
+
+            const savedTopic = await newComment.save()
+            res.status(201).json({ message: 'Comment added successfully', topic: savedTopic })
+        } catch (error) {
+            res.status(500).json({ error: 'Server error: Unable to save Comment' })
+        }
+    }
+
 }
