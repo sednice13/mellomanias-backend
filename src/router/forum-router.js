@@ -28,7 +28,6 @@ const authenticateJWT = (req, res, next) => {
       next(err)
     }
   }
-
 router.post('/newtopic', authenticateJWT, (req, res, next) => controller.addPost(req, res, next))
 router.get('/topics/:topic/:theme', (req, res, next) => controller.getPosts(req, res, next))
 
@@ -37,3 +36,8 @@ router.delete('/posts/:postid', authenticateJWT, (req, res, next) => controller.
 router.put('/posts/:postid', authenticateJWT, (req, res, next) => controller.updatePost(req, res, next))
 
 router.post('/newtopic/:postid', authenticateJWT, (req, res, next) => controller.addComment(req, res, next))
+
+router.get('/newtopic/:postid/comments',  (req, res, next) => controller.getComments(req, res, next))
+router.get('/newtopic/:postid',  (req, res, next) => controller.getPost(req, res, next))
+router.put('/comments/:commentid', authenticateJWT, (req, res, next) => controller.updateComment(req,res, next))
+router.delete('/comments/:commentid', authenticateJWT, (req, res, next) => controller.deleteComment(req,res, next))

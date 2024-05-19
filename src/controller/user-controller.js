@@ -81,7 +81,9 @@ export class UserContoller {
         })
 
         res.status(201).json({
-          accsess_token: accsesstoken
+          accsess_token: accsesstoken,
+          message: 'Du är inloggad'
+          
         })
       
     } catch (error) {

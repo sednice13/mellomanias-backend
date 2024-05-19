@@ -2,11 +2,8 @@ import { Comment } from '../models/comment.js'
 import { Topic } from '../models/topic.js'
 
 export class ForumController {
-    /**
-     * Adds a new topic.
-     * @param {object} req - The request object.
-     * @param {object} res - The response object.
-     */
+    // Existing methods ...
+
     async addPost(req, res) {
         try {
             if (this.checkCatagory(req.body.catagory) && this.checkMainTheme(req.body.maintheme)) {
@@ -19,22 +16,12 @@ export class ForumController {
         }
     }
 
-    /**
-     * Checks if the category is valid.
-     * @param {string} catagory - The category to check.
-     * @returns {boolean} - True if valid, false otherwise.
-     */
     checkCatagory(catagory) {
         const eurovision = 'eurovision'
         const melo = 'melodifestivalen'
         return catagory === eurovision || catagory === melo
     }
 
-    /**
-     * Checks if the main theme is valid.
-     * @param {string} theme - The main theme to check.
-     * @returns {boolean} - True if valid, false otherwise.
-     */
     checkMainTheme(theme) {
         const general = 'general'
         const mucic = 'music'
@@ -42,11 +29,6 @@ export class ForumController {
         return theme === general || theme === mucic || theme === artists
     }
 
-    /**
-     * Saves a new topic.
-     * @param {object} req - The request object.
-     * @param {object} res - The response object.
-     */
     async saveTopic(req, res) {
         try {
             const { catagory, maintheme, title, text } = req.body
@@ -74,19 +56,17 @@ export class ForumController {
             const limit = 3
             const skip = (page - 1) * limit
 
-            
             const posts = await Topic.find({ catagory: topic, maintheme: theme })
                 .skip(skip)
                 .limit(limit)
 
-            
             const totalPosts = await Topic.countDocuments({ catagory: topic, maintheme: theme })
             const totalPages = Math.ceil(totalPosts / limit)
 
             res.status(200).json({
                 posts,
                 totalPages,
-                currentPage: parseInt(page),
+                currentPage: parseInt(page)
             })
         } catch (error) {
             res.status(500).json({ error: 'Server error: Unable to fetch topics' })
@@ -94,7 +74,6 @@ export class ForumController {
     }
 
     async deletePosts(req, res) {
-
         try {
             const post = await Topic.findById(req.params.postid) 
             if (!post) {
@@ -102,9 +81,7 @@ export class ForumController {
             }
 
             if(req.user.username != post.username) {
-          
-                return res.stauts(404).json({error: 'not right user'})
-
+                return res.status(403).json({ error: 'Unauthorized: Cannot delete posts by other users' })
             }
     
             await post.remove() 
@@ -112,7 +89,6 @@ export class ForumController {
         } catch (error) {
             res.status(500).json({ error: 'Server error: Unable to delete post' }) 
         }
-
     }
 
     async updatePost(req, res) {
@@ -126,7 +102,6 @@ export class ForumController {
                 return res.status(403).json({ error: 'Unauthorized: Cannot edit posts by other users' })
             }
     
-            
             post.title = req.body.title || post.title
             post.text = req.body.text || post.text
     
@@ -137,12 +112,10 @@ export class ForumController {
         }
     }
 
-
     async getPost(req, res) {
         try {
-            const post = await Topic.findById(req.params.id)
-
-            if(!post) {
+            const post = await Topic.findById(req.params.postid)
+            if (!post) {
                 return res.status(404).json({ error: 'Post not found' })
             }
             res.status(200).json(post)
@@ -151,7 +124,7 @@ export class ForumController {
         }
     }
 
-     async addComment(req, res) {
+    async addComment(req, res) {
         try {
             if (this.checkCatagory(req.body.catagory) && this.checkMainTheme(req.body.maintheme)) {
                 await this.saveComment(req, res)
@@ -161,9 +134,9 @@ export class ForumController {
         } catch (error) {
             res.status(500).json({ error: 'Server error: Unable to add Comment' })
         }
-     }
+    }
 
-     async saveComment(req, res) {
+    async saveComment(req, res) {
         try {
             const { catagory, maintheme, text } = req.body
             const username = req.user.username
@@ -183,4 +156,66 @@ export class ForumController {
         }
     }
 
+    async getComments(req, res) {
+        try {
+            const { page = 1 } = req.query 
+            const limit = 3
+            const skip = (page - 1) * limit
+
+            const comments = await Comment.find({ topicid: req.params.postid })
+                .skip(skip)
+                .limit(limit)
+
+            const totalPosts = await Comment.countDocuments({ topicid: req.params.postid })
+            const totalPages = Math.ceil(totalPosts / limit)
+            if (!comments) {
+                return res.status(404).json({ message: 'No comments exist' })
+            }
+            res.status(200).json({
+                comments,
+                totalPages,
+                currentPage: parseInt(page)
+            })
+        } catch (error) {
+            res.status(500).json({ error: 'Server error: Unable to get comments' })
+        }
+    }
+
+    async updateComment(req, res) {
+        try {
+            const comment = await Comment.findById(req.params.commentid)
+            if (!comment) {
+                return res.status(404).json({ error: 'Comment not found' })
+            }
+
+            if (req.user.username !== comment.username) {
+                return res.status(403).json({ error: 'Unauthorized: Cannot edit comments by other users' })
+            }
+
+            comment.text = req.body.text || comment.text
+
+            await comment.save()
+            res.status(200).json({ message: 'Comment updated successfully', updatedComment: comment })
+        } catch (error) {
+            res.status(500).json({ error: 'Server error: Unable to update comment' })
+        }
+    }
+
+    async deleteComment(req, res) {
+        try {
+            const comment = await Comment.findById(req.params.commentid)
+            if (!comment) {
+                return res.status(404).json({ error: 'Comment not found' })
+            }
+
+            if (req.user.username !== comment.username) {
+                return res.status(403).json({ error: 'Unauthorized: Cannot delete comments by other users' })
+            }
+
+            await comment.remove()
+            res.status(200).json({ message: 'Comment deleted successfully' })
+        } catch (error) {
+            res.status(500).json({ error: 'Server error: Unable to delete comment' })
+        }
+    }
 }
