@@ -72,10 +72,10 @@ export class UserContoller {
    async login (req, res, next) {
     try {
       const user = await User.authenticate(req.body.user, req.body.password)
-      const privatekey = fs.readFileSync(process.env.ACCESS_TOKEN_SECRET)
+      //const privatekey = fs.readFileSync(process.env.ACCESS_TOKEN_SECRET)
 
      
-        const accsesstoken = jwt.sign(await this.signPayload(user), privatekey, {
+        const accsesstoken = jwt.sign(await this.signPayload(user), process.env.ACCESS_TOKEN_SECRET, {
           algorithm: 'RS256',
           expiresIn: process.env.ACCESS_TOKEN_LIFE
         })
