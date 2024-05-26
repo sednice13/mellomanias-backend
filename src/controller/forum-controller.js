@@ -1,9 +1,15 @@
 import { Comment } from '../models/comment.js'
 import { Topic } from '../models/topic.js'
 
+/**
+ * Controller for handling forum operations
+ */
 export class ForumController {
-    // Existing methods ...
-
+    /**
+     * Adds a new post
+     * @param {Object} req - Express request object
+     * @param {Object} res - Express response object
+     */
     async addPost(req, res) {
         try {
             if (this.checkCatagory(req.body.catagory) && this.checkMainTheme(req.body.maintheme)) {
@@ -16,12 +22,22 @@ export class ForumController {
         }
     }
 
+    /**
+     * Checks if the category is valid
+     * @param {string} catagory - The category to check
+     * @returns {boolean} - True if valid, false otherwise
+     */
     checkCatagory(catagory) {
         const eurovision = 'eurovision'
         const melo = 'melodifestivalen'
         return catagory === eurovision || catagory === melo
     }
 
+    /**
+     * Checks if the main theme is valid
+     * @param {string} theme - The theme to check
+     * @returns {boolean} - True if valid, false otherwise
+     */
     checkMainTheme(theme) {
         const general = 'general'
         const mucic = 'music'
@@ -29,6 +45,11 @@ export class ForumController {
         return theme === general || theme === mucic || theme === artists
     }
 
+    /**
+     * Saves a new topic
+     * @param {Object} req - Express request object
+     * @param {Object} res - Express response object
+     */
     async saveTopic(req, res) {
         try {
             const { catagory, maintheme, title, text } = req.body
@@ -45,14 +66,19 @@ export class ForumController {
             const savedTopic = await newTopic.save()
             res.status(201).json({ message: 'Topic added successfully', topic: savedTopic })
         } catch (error) {
-            res.status(500).json({ error: 'Server error: Unable to save topic' })
+            res.status(500).json({ message: 'Server error: Unable to save topic' })
         }
     }
 
+    /**
+     * Gets posts based on topic and theme
+     * @param {Object} req - Express request object
+     * @param {Object} res - Express response object
+     */
     async getPosts(req, res) {
         try {
             const { topic, theme } = req.params
-            const { page = 1 } = req.query 
+            const { page = 1 } = req.query
             const limit = 3
             const skip = (page - 1) * limit
 
@@ -69,49 +95,64 @@ export class ForumController {
                 currentPage: parseInt(page)
             })
         } catch (error) {
-            res.status(500).json({ error: 'Server error: Unable to fetch topics' })
+            res.status(500).json({ message: 'Server error: Unable to fetch topics' })
         }
     }
 
+    /**
+     * Deletes a post
+     * @param {Object} req - Express request object
+     * @param {Object} res - Express response object
+     */
     async deletePosts(req, res) {
         try {
-            const post = await Topic.findById(req.params.postid) 
+            const post = await Topic.findById(req.params.postid)
             if (!post) {
-                return res.status(404).json({ error: 'Post not found' })
+                return res.status(404).json({ message: 'Post not found' })
             }
 
             if(req.user.username != post.username) {
-                return res.status(403).json({ error: 'Unauthorized: Cannot delete posts by other users' })
+                return res.status(403).json({ message: 'Unauthorized: Cannot delete posts by other users' })
             }
-    
-            await post.remove() 
-            res.status(200).json({ message: 'Post deleted successfully' }) 
+
+            await post.remove()
+            res.status(200).json({ message: 'Post deleted successfully' })
         } catch (error) {
-            res.status(500).json({ error: 'Server error: Unable to delete post' }) 
+            res.status(500).json({ error: 'Server error: Unable to delete post' })
         }
     }
 
+    /**
+     * Updates a post
+     * @param {Object} req - Express request object
+     * @param {Object} res - Express response object
+     */
     async updatePost(req, res) {
         try {
-            const post = await Topic.findById(req.params.postid) 
+            const post = await Topic.findById(req.params.postid)
             if (!post) {
-                return res.status(404).json({ error: 'Post not found' })
+                return res.status(404).json({ message: 'Post not found' })
             }
-    
+
             if (req.user.username !== post.username) {
-                return res.status(403).json({ error: 'Unauthorized: Cannot edit posts by other users' })
+                return res.status(403).json({ message: 'Unauthorized: Cannot edit posts by other users' })
             }
-    
+
             post.title = req.body.title || post.title
             post.text = req.body.text || post.text
-    
-            await post.save() 
+
+            await post.save()
             res.status(200).json({ message: 'Post updated successfully', updatedPost: post })
         } catch (error) {
-            res.status(500).json({ error: 'Server error: Unable to update post' })
+            res.status(500).json({ message: 'Server error: Unable to update post' })
         }
     }
 
+    /**
+     * Gets a single post
+     * @param {Object} req - Express request object
+     * @param {Object} res - Express response object
+     */
     async getPost(req, res) {
         try {
             const post = await Topic.findById(req.params.postid)
@@ -124,18 +165,28 @@ export class ForumController {
         }
     }
 
+    /**
+     * Adds a new comment
+     * @param {Object} req - Express request object
+     * @param {Object} res - Express response object
+     */
     async addComment(req, res) {
         try {
             if (this.checkCatagory(req.body.catagory) && this.checkMainTheme(req.body.maintheme)) {
                 await this.saveComment(req, res)
             } else {
-                res.status(400).json({ error: 'Bad request: Invalid category or theme' })
+                res.status(400).json({ message: 'Bad request: Invalid category or theme' })
             }
         } catch (error) {
-            res.status(500).json({ error: 'Server error: Unable to add Comment' })
+            res.status(500).json({ message: 'Server error: Unable to add Comment' })
         }
     }
 
+    /**
+     * Saves a new comment
+     * @param {Object} req - Express request object
+     * @param {Object} res - Express response object
+     */
     async saveComment(req, res) {
         try {
             const { catagory, maintheme, text } = req.body
@@ -145,7 +196,7 @@ export class ForumController {
                 username,
                 catagory,
                 maintheme,
-                topicid: req.params.postid,
+                topicid: req.body.topicid,
                 text
             })
 
@@ -156,9 +207,14 @@ export class ForumController {
         }
     }
 
+    /**
+     * Gets comments for a post
+     * @param {Object} req - Express request object
+     * @param {Object} res - Express response object
+     */
     async getComments(req, res) {
         try {
-            const { page = 1 } = req.query 
+            const { page = 1 } = req.query
             const limit = 3
             const skip = (page - 1) * limit
 
@@ -181,11 +237,16 @@ export class ForumController {
         }
     }
 
+    /**
+     * Updates a comment
+     * @param {Object} req - Express request object
+     * @param {Object} res - Express response object
+     */
     async updateComment(req, res) {
         try {
             const comment = await Comment.findById(req.params.commentid)
             if (!comment) {
-                return res.status(404).json({ error: 'Comment not found' })
+                return res.status(404).json({ message: 'Comment not found' })
             }
 
             if (req.user.username !== comment.username) {
@@ -201,15 +262,20 @@ export class ForumController {
         }
     }
 
+    /**
+     * Deletes a comment
+     * @param {Object} req - Express request object
+     * @param {Object} res - Express response object
+     */
     async deleteComment(req, res) {
         try {
             const comment = await Comment.findById(req.params.commentid)
             if (!comment) {
-                return res.status(404).json({ error: 'Comment not found' })
+                return res.status(404).json({ message: 'Comment not found' })
             }
 
             if (req.user.username !== comment.username) {
-                return res.status(403).json({ error: 'Unauthorized: Cannot delete comments by other users' })
+                return res.status(403).json({ message: 'Unauthorized: Cannot delete comments by other users' })
             }
 
             await comment.remove()
