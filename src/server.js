@@ -9,7 +9,7 @@ try {
   await connectToDatabase()
   const app = express()
 
-  // Set various HTTP headers to make the application little more secure.
+  //// Set various HTTP headers to make the application little more secure.
   app.use(helmet())
   app.use(cors())
   // Set up a morgan logger using the dev format for log entries.
