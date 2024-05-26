@@ -72,7 +72,7 @@ export class UserContoller {
    async login (req, res, next) {
     try {
       const user = await User.authenticate(req.body.user, req.body.password)
-      const privatekey = process.env.ACCESS_TOKEN_SECRET.replace(/\\n/g, '\n')
+      const privatekey = Buffer.from(process.env.ACCESS_TOKEN_SECRET, 'base64').toString('utf8')
 
      
         const accsesstoken = jwt.sign(await this.signPayload(user), privatekey, {

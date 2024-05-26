@@ -21,7 +21,7 @@ const authenticateJWT = (req, res, next) => {
           throw new Error('Invalid authentication scheme')
       }
 
-      const publicKey = process.env.PUBLIC_KEY.replace(/\\n/g, '\n')
+      const publicKey = Buffer.from(process.env.ACCESS_TOKEN_PUBLIC, 'base64').toString('utf8')
 
       jwt.verify(token, publicKey, { algorithms: ['RS256'] }, (err, decoded) => {
           if (err) {
