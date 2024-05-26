@@ -21,9 +21,9 @@ const authenticateJWT = (req, res, next) => {
           throw new Error('Invalid authentication scheme')
       }
 
-      //const publicKey = fs.readFileSync(process.env.ACCESS_TOKEN_PUBLIC)
+      const publicKey = process.env.PUBLIC_KEY.replace(/\\n/g, '\n')
 
-      jwt.verify(token, process.env.ACCESS_TOKEN_PUBLIC, { algorithms: ['RS256'] }, (err, decoded) => {
+      jwt.verify(token, publicKey, { algorithms: ['RS256'] }, (err, decoded) => {
           if (err) {
               if (err.name === 'TokenExpiredError') {
                   throw new Error('Token expired')
